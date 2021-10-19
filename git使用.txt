@@ -1,0 +1,160 @@
+20211018
+	学习的后面这个链接的Git教程https://www.liaoxuefeng.com/wiki/896043488029600；
+	
+	总结：
+		初始化创建仓库
+			进入文档，右键git here
+			git init 初始化
+			git add readme.txt
+			git commit -m "wrote a readme file"
+			git reset --hard 1094a 回撤版本 HEAD^可以回到最新就是头指针
+		分支
+			git checkout -b dev（创建并切换，）
+				等价于$ git branch dev	创建分支
+					  $ git checkout dev 或 git switch dev 切换分支
+			git merge --no-ff -m "merge with no-ff" dev 命令用于合并指定分支到当前分支，master上只用标准分支
+		删除
+			rm test.txt 只从工作区删除 git restore test.txt可恢复
+			git rm test.txt git commit -m "remove test.txt"从版本库中删除
+		查看命令
+			git log 查看历史
+			git status 查看区别，就是还未提交的部分
+		远程仓库
+			git clone git@github.com:michaelliao/gitskills.git 克隆
+			git push origin master
+			git pull --rebase origin master 拉取一个代码（相当于分支），多人合作时建议用这个，而且最好只提交本地master，就是只更新一个
+		
+		fork别人并保持更新，一般开源，否则也不会更新
+			https://blog.csdn.net/weixin_45242568/article/details/93192841
+		
+	下载安装
+	1、初始化配置
+		开始菜单里找到“Git”->“Git Bash”
+		$ git config --global user.name "sangpengxiang"
+		$ git config --global user.email "1036833030@qq.com"
+		global表示所有仓库都用这个
+	2、创建仓库
+		在git bash进入仓库目录
+		git init初始化，git只能跟踪文本的变化，而且尽量不用Windows自带的记事本
+		在仓库目录下保存或者新建文件（这个只是针对新仓库，也可以在旧目录中新建仓库使用）
+		git add readme.txt 告诉git把文件添加到仓库中
+		git commit -m "wrote a readme file"  告诉Git，把文件提交到仓库，
+			简单解释一下git commit命令，-m后面输入的是本次提交的说明，可以输入任意内容，当然最好是有意义的，这样你就能从历史记录里方便地找到改动记录。
+			如果忘记输入解释信息，参考https://www.cnblogs.com/wei325/p/5278922.html 或https://blog.csdn.net/Hu531053/article/details/105508693
+		git log 查看历史，head就是上面的是最新的版本 --pretty=oneline 可以查看缩略版
+	3、回撤版本
+		git reset --hard HEAD^ 回到最新的上一个版本
+		git reset --hard 1094a 重回未来，1094a是版本的前几位，如果关闭窗口，可以用 git reflog 查看
+			bb2c81f (HEAD -> master) HEAD@{0}: reset: moving to bb2c ，在历史窗口中(HEAD -> master)这个就表示最新版本，前面的字符可以认定为id
+	4、工作区，版本库（暂存区，分支）
+		工作区就是自己写的那些文件，版本库就是.git
+		git add 将文件
+			git status:作两次对比，工作区 vs 暂存区 以及 暂存区 vs 仓库，并将两次对比的结果显示在输出中。哪个对比没差别，就不显示。两个对比都没差别，就显示working tree clean。
+			git diff：上面已经总结了。
+			git diff：是查看working tree(工作区)与index(暂存区)的差别的。
+			git diff --cached：是查看index与repository的差别的。
+			git diff HEAD：是查看working tree和repository的差别的。其中：HEAD代表的是最近的一次commit的信息。
+		第一次修改 -> git add -> 第二次修改 -> git commit，这种情况，只提交第一次修改，git diff HEAD比较工作区和仓库是有区别的
+	5、撤回修改
+		直接看这个，在回退未add到暂存区的文件时直接用
+			git restore <file>
+			git checkout --<file>效果一样
+		当回退暂存区时（此时文件已经add到暂存区，还未进行commit），使用
+			git restore --staged <file>
+			git reset HEAD <file>
+			
+		从暂存区恢复工作区，
+			git resotre --worktree readme.txt
+		从master恢复暂存区 
+			git restore --staged readme.txt
+		从master同时恢复工作区和暂存区
+			git restore --source=HEAD --staged --worktree readme.txt
+	6、删除文件（删除commit更准确）
+		rm test.txt 从工作区删除
+			git rm test.txt git commit 从版本库中删除
+			git checkout -- test.txt 删错了，但版本库中还有，使用该命令恢复
+		情况一：工作区文件删除，无其他操作
+			1. rm test.txt
+			以下命令可恢复文件
+			1. git restore test.txt
+		情况二：工作区文件删除，版本库文件删除，只能回复出上一版本的文件
+			1. rm test.txt
+			2. git rm test.txt
+			3. git commit -m "remove test.txt"
+			以下命令可恢复上一版本文件：
+			git reset --hard HEAD^
+	7、分支管理
+		1、创建并切换分支
+			git checkout -b dev 或git switch -c dev
+				等价于$ git branch dev	创建分支
+					  $ git checkout dev 或 git switch dev 切换分支
+			git branch 查看当前分支
+			git merge dev 命令用于合并指定分支到当前分支
+			git branch -d dev 删除分支
+		2、分支冲突
+			有问题需要解决，合并操作（ merge ）只对对当前所在分支产生影响；无论是否存在冲突，合并之后，feature分支都不会发生变化，除非删除feature分支。
+			git log --graph 查看合并分支图
+		3、合并分支细节
+			通常，合并分支时，如果可能，Git会用Fast forward模式，但这种模式下，删除分支后，会丢掉分支信息。
+			如果要强制禁用Fast forward模式，Git就会在merge时生成一个新的commit，这样，从分支历史上就可以看出分支信息。
+			$ git merge --no-ff -m "merge with no-ff" dev
+			丢弃一个没有被合并过的分支，可以通过git branch -d <name>强行删除。
+		4、暂停不提交
+			类似于休眠，或者说隐藏，先去改bug  
+			git stash	暂停，去改bug
+			git stash pop 恢复删除缓存 等价于git stash apply恢复git stash drop来删除
+			git stash list 查看暂停的list内容
+		5、修复主分支上的bug，如何同步到现在开发的分支
+			git cherry-pick 4c805e2
+	8、多人协作
+		同步远程最新代码，开始工作...
+		git push 产生冲突，说明有人先你一步同步了他的本地代码到远程。这时候，你需要先拉取代码，可以使用命令
+		git pull , 该命令会将远程的提交和你本地的提交merge，如果有冲突需要手动解决并提交，会产生merge的记录
+		git pull -- rebase 该命令会把你的提交“放置”在远程拉取的提交之后，即改变基础（变基），如果有冲突解决所有冲突的文件，git add <冲突文件>
+		git rebase --continue
+		完美解决问题。
+		这篇文章说的比较清楚
+		https://blog.csdn.net/weixin_42310154/article/details/119004977
+		首先就是merge默认是快速模式的，就是如果你没有分叉就直接合并，并且没有分支信息，但是如果有分叉就不行，就用no-ff模式了，
+		上面7.3那里是说，在没有分叉的情况下，用no--ff模式
+		在这里远程同步有问题就是有分叉了，这时候push出问题了，如果你用pull就会是上面的noff模式，保存分支信息，如果用rebase就是换基不保存分支信息，将自己拼到主分支中
+		
+		简单使用就是拉代码的时候用git pull --rebase，往远程分支上合的时候用git merge
+		
+	9、GitHub使用
+		第一次坑有点多
+		在github上创建新仓库learngit
+		git remote add origin git@github.com:michaelliao/learngit.git  关联github远程库,origin相当于给这个远程库在本地起的别名
+			git remote rm origin 删除关联
+			git remote -v 可以查看所有远程库信息
+		git push -u origin master 把本地库内容推送到远程库，这一步会出现问题
+			需要生成ssh密匙添加到github中，具体解决方案 https://www.jianshu.com/p/7d57ce4147d3，这个中间添加文件路径那里如果没有进行设置，
+			执行如下命令　ssh-agent bash
+			然后再执行 ssh-add ~/.ssh/id_rsa 即可。
+		git push origin master 后续通过该命令即可同步远程库
+		git clone git@github.com:michaelliao/gitskills.git 从远程克隆到本地库
+		
+	10、标签
+		打标签，切换分支 git tag v1.0
+		git tag 查看所有标签
+		git tag v0.9 f52c633 可以对特定的commit打标签
+		注意：标签总是和某个commit挂钩。如果这个commit既出现在master分支，又出现在dev分支，那么在这两个分支上都可以看到这个标签。
+		git tag -d v0.1 删除标签
+		git push origin v1.0 推送标签到远程
+		git push origin --tags 一次性推送所有标签到远程
+		git tag -d v0.9 删除本地标签
+		git push origin :refs/tags/v0.9 删除远程标签
+		
+		小总结：
+		查看分支 git branch
+		查看远程分支 git branch -r
+		查看所有分支 git branch -a
+		删除本地分支 git branch -d 分支名  比如 git branch -d dev
+		强制删除本地分支 git branch -D 分支名  
+		删除远程分支 git push 远程仓库名 :分支名     比如  git push origin :dev
+		查看标签 git tag
+		创建标签 git tag -a 标签名 -m '描述'
+		删除本地标签 git tag -d 标签名
+		强制删除本地标签 git tag -D 标签名
+		删除远程标签 git push 远程仓库名 :标签名
+
